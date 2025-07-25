@@ -1,6 +1,9 @@
+import CategoryItem from "@/components/CategoryItem";
 import { Header } from "@/components/Header";
+import { useCategory, useTransaction } from "@/redux/hooks";
+import { useAnalytics } from "@/services/hooks/analytics.hook";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React from "react";
 import {
   Dimensions,
   SafeAreaView,
@@ -11,44 +14,26 @@ import {
   View,
 } from "react-native";
 import { PieChart } from "react-native-chart-kit";
-import CategoryItem from "../../components/CategoryItem";
-import { useCategory, useTransaction } from "../../redux/hooks";
 
 const { width } = Dimensions.get("window");
 
 const AnalyticsScreen = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState("All");
-  const [selectedYear, setSelectedYear] = useState("This year (2024)");
-
-  const periods = ["All", "Daily", "Weekly", "Monthly"];
-  const { categories } = useCategory();
+  const {
+    totalExpense,
+    selectedPeriod,
+    setSelectedPeriod,
+    itemizedCategory,
+    selectedYear,
+    periods,
+  } = useAnalytics();
   const { transactions } = useTransaction();
-
-  const itemizedCategory = categories
-    ?.map((category) => {
-      const totalAmount = transactions
-        .filter((t) => t.category === category.name)
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      return {
-        ...category,
-        totalAmount,
-      };
-    })
-    .filter((category) => category.totalAmount > 0);
-
-  const totalExpense = itemizedCategory.reduce(
-    (sum, item) => sum + item.totalAmount,
-    0
-  );
+  const { categories } = useCategory();
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <Header />
 
-        {/* Title and Year Selector */}
         <View style={styles.titleSection}>
           <Text style={styles.title}>Expense Report</Text>
           <TouchableOpacity style={styles.yearSelector}>
@@ -57,7 +42,6 @@ const AnalyticsScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Period Tabs */}
         <View style={styles.periodTabs}>
           {periods.map((period, idx) => (
             <TouchableOpacity
@@ -80,7 +64,6 @@ const AnalyticsScreen = () => {
           ))}
         </View>
 
-        {/* Pie Chart */}
         <View style={styles.chartContainer}>
           <View style={styles.chartWrapper}>
             <PieChart
@@ -105,7 +88,6 @@ const AnalyticsScreen = () => {
           </View>
         </View>
 
-        {/* Legend */}
         <View style={styles.legend}>
           {categories.map((item, index) => (
             <View key={index} style={styles.legendItem}>
@@ -117,7 +99,6 @@ const AnalyticsScreen = () => {
           ))}
         </View>
 
-        {/* Categories Section */}
         {itemizedCategory.length > 0 && (
           <View style={styles.categoriesSection}>
             <View style={styles.sectionHeader}>
@@ -147,7 +128,6 @@ const AnalyticsScreen = () => {
           </View>
         )}
 
-        {/* Transaction History */}
         <View style={styles.transactionSection}>
           <Text style={styles.sectionTitle}>Transaction History</Text>
 

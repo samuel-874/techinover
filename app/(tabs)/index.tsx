@@ -53,7 +53,6 @@ const Index = () => {
           ))}
         </ScrollView>
 
-        {/* Page Indicator */}
         <View style={styles.pageIndicator}>
           {spendData.map((_, idx) => (
             <View
@@ -95,7 +94,7 @@ const Index = () => {
             <TransactionItem
               key={idx}
               transaction={transaction}
-              style={styles.transactionItem} // if you want to pass external styling
+              style={styles.transactionItem}
             />
           ))}
         </View>

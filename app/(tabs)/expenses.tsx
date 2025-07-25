@@ -1,18 +1,12 @@
 import CategoryModal from "@/components/CategoryModal";
-import { useTransaction } from "@/redux/hooks";
-import { Transaction } from "@/redux/transactionSlice";
+import CustomDatePicker from "@/components/CustomDatePicker";
+import { useExpense } from "@/services/hooks/expense.hook";
 import { Ionicons } from "@expo/vector-icons";
-import BottomSheet from "@gorhom/bottom-sheet";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { useNavigation } from "@react-navigation/native";
-import dayjs from "dayjs";
-import "dayjs/locale/es"; // load on demand
-import * as ImagePicker from "expo-image-picker";
-import React, { useCallback, useRef, useState } from "react";
+import "dayjs/locale/es";
+import React from "react";
 import {
-  Button,
   Image,
-  Modal,
+  KeyboardAvoidingView,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -23,264 +17,171 @@ import {
   View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Category } from "../../redux/categorySlice";
-import { generateTransactionID } from "../../services/functions";
 
 const AddExpenseScreen = () => {
-  const navigation = useNavigation();
-  const [amount, setAmount] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  );
-  const [date, setDate] = useState(new Date());
-  const [note, setNote] = useState("");
-  const [image, setImage] = useState<string | undefined>(undefined);
-  const [showPicker, setShowPicker] = useState(false);
-  const [errors, setErrors] = useState<{
-    amount?: string;
-    category?: string;
-    note?: string;
-  }>({});
-
-  const formattedDate = dayjs(date).format("DD/MM/YYYY");
-  const bottomSheetRef = useRef<BottomSheet>(null);
-
-  const { addTransaction } = useTransaction();
-
-  const onChange = (event: any, selectedDate: any) => {
-    setShowPicker(Platform.OS === "ios");
-    if (selectedDate) {
-      setDate(selectedDate);
-    }
-  };
-
-  const handleOpenPress = useCallback(() => {
-    bottomSheetRef.current?.snapToIndex(0);
-  }, []);
-
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos"],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
-  const handleCategorySelect = (category: Category) => {
-    setSelectedCategory(category);
-    setErrors((prev) => ({ ...prev, category: undefined }));
-    bottomSheetRef.current?.close();
-  };
-
-  const clearData = () => {
-    setAmount("");
-    setSelectedCategory(null);
-    setDate(new Date());
-    setNote("");
-    setImage(undefined);
-    setErrors({});
-  };
-
-  const handleCancel = () => {
-    clearData();
-    navigation.goBack();
-  };
-
-  const handleCreate = () => {
-    const validationErrors: typeof errors = {};
-
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      validationErrors.amount = "Please enter a valid amount";
-    }
-
-    if (!selectedCategory) {
-      validationErrors.category = "Category is required";
-    }
-
-    if (!note.trim()) {
-      validationErrors.note = "Note is required";
-    }
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    const newTransaction: Transaction = {
-      id: generateTransactionID(),
-      amount: Number(amount),
-      category: selectedCategory?.name,
-      date: dayjs(date).format("ddd, D MMM"),
-      color: selectedCategory?.color,
-      icon: selectedCategory?.icon,
-      note,
-      imageUrl: image,
-    };
-
-    addTransaction(newTransaction);
-    handleCancel();
-  };
+  const {
+    amount,
+    setAmount,
+    date,
+    note,
+    image,
+    errors,
+    setErrors,
+    showPicker,
+    onChange,
+    setDate,
+    pickImage,
+    setNote,
+    handleCreate,
+    handleCancel,
+    formattedDate,
+    setShowPicker,
+    bottomSheetRef,
+    handleOpenPress,
+    selectedCategory,
+    handleCategorySelect,
+  } = useExpense();
 
   return (
     <SafeAreaView style={styles.container}>
       <GestureHandlerRootView style={{ flex: 1, width: "100%" }}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Add Expense</Text>
-          </View>
-
-          <View style={styles.amountSection}>
-            <Text style={styles.amountLabel}>How much?</Text>
-            <View style={styles.amountContainer}>
-              <Text style={styles.currencySymbol}>₦</Text>
-              <TextInput
-                style={styles.amountInput}
-                value={amount}
-                onChangeText={(text) => {
-                  setAmount(text);
-                  setErrors((prev) => ({ ...prev, amount: undefined }));
-                }}
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor="#6B7280"
-              />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
+        >
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.header}>
+              <Text style={styles.title}>Add Expense</Text>
             </View>
-            {errors.amount && (
-              <Text style={styles.errorText}>{errors.amount}</Text>
-            )}
-          </View>
 
-          <View style={styles.formSection}>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Category</Text>
-              <TouchableOpacity
-                style={styles.dropdown}
-                onPress={handleOpenPress}
-              >
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    !selectedCategory && styles.placeholder,
-                  ]}
-                >
-                  {selectedCategory?.name || "Select a category"}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#6B7280" />
-              </TouchableOpacity>
-              {errors.category && (
-                <Text style={styles.errorText}>{errors.category}</Text>
+            <View style={styles.amountSection}>
+              <Text style={styles.amountLabel}>How much?</Text>
+              <View style={styles.amountContainer}>
+                <Text style={styles.currencySymbol}>₦</Text>
+                <TextInput
+                  style={styles.amountInput}
+                  value={amount}
+                  onChangeText={(text) => {
+                    setAmount(text);
+                    setErrors((prev) => ({ ...prev, amount: undefined }));
+                  }}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor="#6B7280"
+                />
+              </View>
+              {errors.amount && (
+                <Text style={styles.errorText}>{errors.amount}</Text>
               )}
             </View>
 
-            <TouchableOpacity
-              style={styles.fieldGroup}
-              onPress={() => setShowPicker(true)}
-            >
-              <Text style={styles.fieldLabel}>Expense date</Text>
-              <View style={styles.dateInput}>
-                <TextInput
-                  style={styles.dateTextInput}
-                  value={formattedDate}
-                  editable={false}
-                  placeholder="DD/MM/YYYY"
-                  placeholderTextColor="#9CA3AF"
-                />
-                <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+            <View style={styles.formSection}>
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Category</Text>
+                <TouchableOpacity
+                  style={styles.dropdown}
+                  onPress={handleOpenPress}
+                >
+                  <Text
+                    style={[
+                      styles.dropdownText,
+                      !selectedCategory && styles.placeholder,
+                    ]}
+                  >
+                    {selectedCategory?.name || "Select a category"}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#6B7280" />
+                </TouchableOpacity>
+                {errors.category && (
+                  <Text style={styles.errorText}>{errors.category}</Text>
+                )}
               </View>
-            </TouchableOpacity>
 
-            {Platform.OS === "android" && showPicker && (
-              <DateTimePicker
-                value={date}
-                mode="date"
-                display="default"
+              <TouchableOpacity
+                style={styles.fieldGroup}
+                onPress={() => setShowPicker(true)}
+              >
+                <Text style={styles.fieldLabel}>Expense date</Text>
+                <View style={styles.dateInput}>
+                  <TextInput
+                    style={styles.dateTextInput}
+                    value={formattedDate}
+                    editable={false}
+                    placeholder="DD/MM/YYYY"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                  <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+                </View>
+              </TouchableOpacity>
+
+              <CustomDatePicker
+                date={date}
+                showPicker={showPicker}
+                setShowPicker={setShowPicker}
+                setDate={setDate}
                 onChange={onChange}
               />
-            )}
 
-            {Platform.OS === "ios" && (
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={showPicker}
-                onRequestClose={() => setShowPicker(false)}
-              >
-                <View style={styles.modalOverlay}>
-                  <View style={styles.modalContent}>
-                    <DateTimePicker
-                      value={date}
-                      mode="date"
-                      display="spinner"
-                      onChange={(event, selectedDate) => {
-                        setDate(selectedDate || date);
-                      }}
-                    />
-                    <Button title="Done" onPress={() => setShowPicker(false)} />
-                  </View>
-                </View>
-              </Modal>
-            )}
+              <TouchableOpacity style={styles.uploadArea} onPress={pickImage}>
+                <Ionicons
+                  name="cloud-upload-outline"
+                  size={24}
+                  color="#6B7280"
+                />
+                <Text style={styles.uploadText}>
+                  <Text style={styles.uploadLink}>Click to upload</Text> or drag
+                  and drop
+                </Text>
+                <Text style={styles.uploadSubtext}>
+                  SVG, PNG, JPG or GIF (max. 800x400px)
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity style={styles.uploadArea} onPress={pickImage}>
-              <Ionicons name="cloud-upload-outline" size={24} color="#6B7280" />
-              <Text style={styles.uploadText}>
-                <Text style={styles.uploadLink}>Click to upload</Text> or drag
-                and drop
-              </Text>
-              <Text style={styles.uploadSubtext}>
-                SVG, PNG, JPG or GIF (max. 800x400px)
-              </Text>
-            </TouchableOpacity>
-
-            {image && (
-              <Image
-                source={{ uri: image }}
-                style={{ width: 30, height: 40 }}
-              />
-            )}
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Note</Text>
-              <TextInput
-                style={styles.noteInput}
-                value={note}
-                onChangeText={(text) => {
-                  setNote(text);
-                  setErrors((prev) => ({ ...prev, note: undefined }));
-                }}
-                placeholder="Give a description"
-                placeholderTextColor="#9CA3AF"
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-              />
-              {errors.note && (
-                <Text style={styles.errorText}>{errors.note}</Text>
+              {image && (
+                <Image
+                  source={{ uri: image }}
+                  style={{ width: 30, height: 40 }}
+                />
               )}
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Note</Text>
+                <TextInput
+                  style={styles.noteInput}
+                  value={note}
+                  onChangeText={(text) => {
+                    setNote(text);
+                    setErrors((prev) => ({ ...prev, note: undefined }));
+                  }}
+                  placeholder="Give a description"
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+                {errors.note && (
+                  <Text style={styles.errorText}>{errors.note}</Text>
+                )}
+              </View>
             </View>
-          </View>
 
-          <View style={styles.buttonSection}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={handleCancel}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonSection}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCancel}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.continueButton}
-              onPress={handleCreate}
-            >
-              <Text style={styles.continueButtonText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleCreate}
+              >
+                <Text style={styles.continueButtonText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
         <CategoryModal
           onSelect={handleCategorySelect}
           bottomSheetRef={bottomSheetRef}
