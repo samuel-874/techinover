@@ -117,13 +117,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#6B7280",
     marginBottom: 5,
-    fontFamily: "Lato-Regular",
+    fontFamily: "Lato_400Bold",
   },
   userName: {
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: "700",
     color: "#000",
-    fontFamily: "Lato-Regular",
+    fontFamily: "Lato_400Bold",
   },
   pageIndicator: {
     flexDirection: "row",
@@ -143,10 +143,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#000",
-    marginBottom: 15,
-    fontFamily: "Lato_400Bold",
+    marginBottom: 14,
+    fontFamily: "Lato_700Bold",
   },
   quickLinksRow: {
     flexDirection: "row",

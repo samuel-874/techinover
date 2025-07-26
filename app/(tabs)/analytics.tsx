@@ -5,7 +5,6 @@ import { useAnalytics } from "@/services/hooks/analytics.hook";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
-  Dimensions,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -13,9 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { PieChart } from "react-native-chart-kit";
-
-const { width } = Dimensions.get("window");
+import PieChart from "react-native-pie-chart";
+import "react-native-svg";
 
 const AnalyticsScreen = () => {
   const {
@@ -28,6 +26,11 @@ const AnalyticsScreen = () => {
   } = useAnalytics();
   const { transactions } = useTransaction();
   const { categories } = useCategory();
+  const widthAndHeight = 250;
+  const series = itemizedCategory.map((cat) => ({
+    value: cat.totalAmount,
+    color: cat.color,
+  }));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -67,17 +70,10 @@ const AnalyticsScreen = () => {
         <View style={styles.chartContainer}>
           <View style={styles.chartWrapper}>
             <PieChart
-              data={itemizedCategory}
-              width={width - 40}
-              height={220}
-              chartConfig={{
-                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              }}
-              accessor="totalAmount"
-              backgroundColor="transparent"
-              paddingLeft="15"
-              center={[10, 0]}
-              hasLegend={false}
+              widthAndHeight={widthAndHeight}
+              series={series}
+              cover={{ radius: 0.7, color: "white" }}
+              padAngle={0.001}
             />
             <View style={styles.chartCenter}>
               <Text style={styles.totalLabel}>Total Expense</Text>
@@ -149,7 +145,7 @@ const AnalyticsScreen = () => {
               </View>
               <View style={styles.transactionRight}>
                 <Text style={styles.transactionAmount}>
-                  ₦ {transaction.amount.toLocaleString()}
+                  ₦ {transaction.amount?.toLocaleString()}
                 </Text>
                 <Text style={styles.transactionDate}>{transaction.date}</Text>
               </View>
@@ -223,7 +219,7 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     alignItems: "center",
-    marginTop: 20,
+    marginVertical: 40,
     fontFamily: "Lato_400Regular",
   },
   chartWrapper: {
@@ -233,7 +229,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "50%",
     left: "50%",
-    transform: [{ translateX: -60 }, { translateY: -25 }],
+    transform: [{ translateX: -120 }, { translateY: -30 }],
     alignItems: "center",
   },
   totalLabel: {

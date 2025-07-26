@@ -12,7 +12,7 @@ export const useAnalytics = () => {
     ?.map((category) => {
       const totalAmount = transactions
         .filter((t) => t.category === category.name)
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum, t) => sum + (t.amount ?? 0), 0);
 
       return {
         ...category,
